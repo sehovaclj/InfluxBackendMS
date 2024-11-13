@@ -8,8 +8,12 @@ Classes:
 from typing import Dict
 from influxdb_client import Point
 from src.config.db import DbConfig
+from src.config.logging import LoggingConfig
 from src.db.connection import connect_to_influxdb
 from src.utils.datetime_utils import utc_now_timestamp
+
+# initialize logger
+logger = LoggingConfig.get_logger(__name__)
 
 
 class InfluxManager:
@@ -41,7 +45,7 @@ class InfluxManager:
         Args:
             message (dict): The Kafka consumer message to be processed.
         """
-        # get the timestamp from the batter, and now time
+        # get the timestamp from the battery, and now time
         battery_timestamp = message.get("timestamp")
         now_time_utc_ms = utc_now_timestamp()
         # compute latency
@@ -50,7 +54,7 @@ class InfluxManager:
         # Create an InfluxDB data point
         point = (
             Point("battery_data")
-            .tag("battery_id", message.get('battery_id', -1))
+            .tag("battery_id", str(message.get('battery_id', -1)))
             .field("voltage", message.get("voltage", -1))
             .field("current", message.get("current", -1))
             .field("temperature", message.get("temperature", -1))
@@ -65,3 +69,4 @@ class InfluxManager:
         self.write_api.write(bucket=DbConfig.INFLUX_BUCKET,
                              org=DbConfig.INFLUX_ORG,
                              record=point)
+        logger.info("Successfully logged a data point in InfluxDB")
