@@ -62,7 +62,7 @@ class InfluxManager:
             .field("state_of_health", message.get("state_of_health", -1))
             .field("influx_timestamp", now_time_utc_ms)
             .field("latency_ms", latency_ms)
-            .time(battery_timestamp)
+            .time(battery_timestamp, write_precision="ms")
         )
 
         # Write the data point to InfluxDB
